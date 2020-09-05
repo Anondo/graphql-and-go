@@ -1,0 +1,51 @@
+# Refer to https://gqlgen.com/config/
+# for detailed .gqlgen.yml documentation.
+
+schema:
+  - "graph/schema/**/*.graphql"
+
+exec:
+  filename: graph/generated/generated.go
+  package: generated
+
+resolver:
+  filename: graph/resolvers/resolver.go
+  package: resolvers
+  type: Resolver
+
+# Optional, set to true if you prefer []Thing over []*Thing
+omit_slice_element_pointers: true
+
+autobind: []
+
+models:
+  ID: # The GraphQL type ID is backed by
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID # An go integer
+      - github.com/99designs/gqlgen/graphql.ID # or a go string
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  User:
+    model:
+      - github.com/Anondo/graphql-and-go/graph/models.User
+  Cart:
+    model:
+      - github.com/Anondo/graphql-and-go/graph/models.Cart
+  CartLineItem:
+    model:
+      - github.com/Anondo/graphql-and-go/graph/models.CartLineItem
+  NewCartItem:
+    model:
+      - github.com/Anondo/graphql-and-go/graph/models.NewCartItem
+  Product:
+    model:
+      - github.com/Anondo/graphql-and-go/graph/models.Product
+  Order:
+    model:
+      - github.com/Anondo/graphql-and-go/graph/models.Order
+  OrderProduct:
+    model:
+      - github.com/Anondo/graphql-and-go/graph/models.OrderProduct

@@ -1,0 +1,19 @@
+
+
+type CartLineItem{
+  id: ID!
+  product: Product!
+  quantity: Int!
+}
+
+type Cart {
+  customer_id: ID!
+  cart_line_items: [CartLineItem!]!
+}
+
+
+input NewCartItem {
+  customer_id: ID!
+  product_id: ID!
+  quantity: Int!
+}

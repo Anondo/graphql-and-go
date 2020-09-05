@@ -1,0 +1,18 @@
+app:
+  name: "graphql_and_go"
+  port: 8080
+  read_timeout: 30 #second
+  write_timeout: 30 #second
+  idle_timeout: 30 #second
+  debug: true
+
+database:
+  host: "localhost"
+  name: db
+  username: user
+  password: password
+  port: 3306
+  max_idle_connection: 1
+  max_open_connection: 7
+  max_connection_lifetime: 60 #in second
+  debug: true

@@ -1,0 +1,14 @@
+
+
+type Query {
+  users: [User!]!
+  user(id: ID!): User
+
+  products: [Product!]!
+  product(id: ID!): Product
+
+  cart(userID: ID!): Cart
+
+  orders(userID: ID!): [Order!]!
+  order(id: ID!): Order
+}

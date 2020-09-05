@@ -1,0 +1,5 @@
+
+
+type Mutation{
+  addToCart(cartItem: NewCartItem!): CartLineItem!
+}

@@ -1,0 +1,14 @@
+
+type OrderProduct {
+  id: ID!
+  product: Product!
+  quantity: Int!
+}
+
+type Order {
+  id: ID!
+  address: String!
+  date_added: String!
+  customer: User!
+  products: [OrderProduct!]!
+}
