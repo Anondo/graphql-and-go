@@ -17,3 +17,9 @@ input NewCartItem {
   product_id: ID!
   quantity: Int!
 }
+
+
+input CheckoutInfo{
+  customer_id: ID!
+  address: String!
+}

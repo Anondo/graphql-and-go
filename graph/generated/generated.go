@@ -56,6 +56,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddToCart func(childComplexity int, cartItem models.NewCartItem) int
+		Checkout  func(childComplexity int, data models.CheckoutInfo) int
 	}
 
 	Order struct {
@@ -88,6 +89,10 @@ type ComplexityRoot struct {
 		Users    func(childComplexity int) int
 	}
 
+	SuccessResponse struct {
+		Message func(childComplexity int) int
+	}
+
 	User struct {
 		FirstName func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -98,6 +103,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	AddToCart(ctx context.Context, cartItem models.NewCartItem) (*models.CartLineItem, error)
+	Checkout(ctx context.Context, data models.CheckoutInfo) (*models.SuccessResponse, error)
 }
 type QueryResolver interface {
 	Users(ctx context.Context) ([]models.User, error)
@@ -170,6 +176,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddToCart(childComplexity, args["cartItem"].(models.NewCartItem)), true
+
+	case "Mutation.checkout":
+		if e.complexity.Mutation.Checkout == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_checkout_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Checkout(childComplexity, args["data"].(models.CheckoutInfo)), true
 
 	case "Order.address":
 		if e.complexity.Order.Address == nil {
@@ -322,6 +340,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Users(childComplexity), true
 
+	case "SuccessResponse.message":
+		if e.complexity.SuccessResponse.Message == nil {
+			break
+		}
+
+		return e.complexity.SuccessResponse.Message(childComplexity), true
+
 	case "User.first_name":
 		if e.complexity.User.FirstName == nil {
 			break
@@ -433,11 +458,24 @@ input NewCartItem {
   product_id: ID!
   quantity: Int!
 }
+
+
+input CheckoutInfo{
+  customer_id: ID!
+  address: String!
+}
+`, BuiltIn: false},
+	{Name: "graph/schema/general.graphql", Input: `
+
+type SuccessResponse {
+  message: String!
+}
 `, BuiltIn: false},
 	{Name: "graph/schema/mutation.graphql", Input: `
 
 type Mutation{
   addToCart(cartItem: NewCartItem!): CartLineItem!
+  checkout(data: CheckoutInfo!): SuccessResponse!
 }
 `, BuiltIn: false},
 	{Name: "graph/schema/order.graphql", Input: `
@@ -512,6 +550,21 @@ func (ec *executionContext) field_Mutation_addToCart_args(ctx context.Context, r
 		}
 	}
 	args["cartItem"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_checkout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.CheckoutInfo
+	if tmp, ok := rawArgs["data"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("data"))
+		arg0, err = ec.unmarshalNCheckoutInfo2githubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐCheckoutInfo(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["data"] = arg0
 	return args, nil
 }
 
@@ -852,6 +905,47 @@ func (ec *executionContext) _Mutation_addToCart(ctx context.Context, field graph
 	res := resTmp.(*models.CartLineItem)
 	fc.Result = res
 	return ec.marshalNCartLineItem2ᚖgithubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐCartLineItem(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_checkout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_checkout_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Checkout(rctx, args["data"].(models.CheckoutInfo))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.SuccessResponse)
+	fc.Result = res
+	return ec.marshalNSuccessResponse2ᚖgithubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐSuccessResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Order_id(ctx context.Context, field graphql.CollectedField, obj *models.Order) (ret graphql.Marshaler) {
@@ -1556,6 +1650,40 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SuccessResponse_message(ctx context.Context, field graphql.CollectedField, obj *models.SuccessResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SuccessResponse",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
@@ -2746,6 +2874,34 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCheckoutInfo(ctx context.Context, obj interface{}) (models.CheckoutInfo, error) {
+	var it models.CheckoutInfo
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "customer_id":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("customer_id"))
+			it.CustomerID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "address":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("address"))
+			it.Address, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewCartItem(ctx context.Context, obj interface{}) (models.NewCartItem, error) {
 	var it models.NewCartItem
 	var asMap = obj.(map[string]interface{})
@@ -2876,6 +3032,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "addToCart":
 			out.Values[i] = ec._Mutation_addToCart(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "checkout":
+			out.Values[i] = ec._Mutation_checkout(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3116,6 +3277,33 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var successResponseImplementors = []string{"SuccessResponse"}
+
+func (ec *executionContext) _SuccessResponse(ctx context.Context, sel ast.SelectionSet, obj *models.SuccessResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, successResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SuccessResponse")
+		case "message":
+			out.Values[i] = ec._SuccessResponse_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3477,6 +3665,11 @@ func (ec *executionContext) marshalNCartLineItem2ᚖgithubᚗcomᚋAnondoᚋgrap
 	return ec._CartLineItem(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNCheckoutInfo2githubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐCheckoutInfo(ctx context.Context, v interface{}) (models.CheckoutInfo, error) {
+	res, err := ec.unmarshalInputCheckoutInfo(ctx, v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalIntID(v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
@@ -3648,6 +3841,20 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNSuccessResponse2githubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐSuccessResponse(ctx context.Context, sel ast.SelectionSet, v models.SuccessResponse) graphql.Marshaler {
+	return ec._SuccessResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSuccessResponse2ᚖgithubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐSuccessResponse(ctx context.Context, sel ast.SelectionSet, v *models.SuccessResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SuccessResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {

@@ -31,7 +31,7 @@ func init() {
 // Router list all the routes used by this app
 func Router() *echo.Echo {
 
-	e.GET("/", echo.WrapHandler(playground.Handler("GraphQL Playground", "/query")))
+	e.GET("/", echo.WrapHandler(playground.Handler("GraphQL Playground", "/api/v1/query")))
 
 	v1 := e.Group("/api/v1")
 

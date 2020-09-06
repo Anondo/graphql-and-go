@@ -19,3 +19,9 @@ type NewCartItem struct {
 	ProductID  int `json:"product_id"`
 	Quantity   int `json:"quantity"`
 }
+
+// CheckoutInfo ...
+type CheckoutInfo struct {
+	CustomerID int    `json:"customer_id"`
+	Address    string `json:"address"`
+}

@@ -78,6 +78,10 @@ func (c *CartRepo) Checkout(userID int, address string) error {
 		if err := c.db.Create(&orderProduct).Error; err != nil {
 			return err
 		}
+
+		if err := c.db.Delete(&cart).Error; err != nil {
+			return err
+		}
 	}
 
 	return nil

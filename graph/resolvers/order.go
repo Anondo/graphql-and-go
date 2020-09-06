@@ -6,6 +6,7 @@ import (
 	"github.com/Anondo/graphql-and-go/conn"
 	"github.com/Anondo/graphql-and-go/database/repos"
 	"github.com/Anondo/graphql-and-go/graph/models"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func (r *queryResolver) Orders(ctx context.Context, userID int) ([]models.Order, error) {
@@ -86,6 +87,8 @@ func (r *queryResolver) Orders(ctx context.Context, userID int) ([]models.Order,
 			Products:  opMap[order.ID],
 		})
 	}
+
+	spew.Dump(oo)
 
 	return oo, nil
 

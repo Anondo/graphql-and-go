@@ -87,3 +87,18 @@ func (r *mutationResolver) AddToCart(ctx context.Context, cartItem models.NewCar
 	return &cl, nil
 
 }
+
+func (r *mutationResolver) Checkout(ctx context.Context, data models.CheckoutInfo) (*models.SuccessResponse, error) {
+
+	cartRepo := repos.NewCartRepo(conn.Default())
+
+	if err := cartRepo.Checkout(data.CustomerID, data.Address); err != nil {
+		return nil, err
+	}
+
+	sr := &models.SuccessResponse{
+		Message: "Order created successfully!",
+	}
+
+	return sr, nil
+}

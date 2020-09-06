@@ -49,3 +49,9 @@ models:
   OrderProduct:
     model:
       - github.com/Anondo/graphql-and-go/graph/models.OrderProduct
+  CheckoutInfo:
+    model:
+      - github.com/Anondo/graphql-and-go/graph/models.CheckoutInfo
+  SuccessResponse:
+    model:
+      - github.com/Anondo/graphql-and-go/graph/models.SuccessResponse

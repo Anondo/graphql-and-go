@@ -73,6 +73,7 @@ func serve(cmd *cobra.Command, args []string) {
 	}()
 
 	log.Println("Listening on port:" + fmt.Sprintf(":%d", appCfg.Port))
+	log.Println("Graphql Playground running on http://localhost:8080/")
 	<-stop
 
 	log.Println("Shutting down server...")
