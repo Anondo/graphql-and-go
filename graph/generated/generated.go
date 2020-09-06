@@ -36,6 +36,8 @@ type Config struct {
 
 type ResolverRoot interface {
 	Mutation() MutationResolver
+	Order() OrderResolver
+	OrderProduct() OrderProductResolver
 	Query() QueryResolver
 }
 
@@ -104,6 +106,13 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	AddToCart(ctx context.Context, cartItem models.NewCartItem) (*models.CartLineItem, error)
 	Checkout(ctx context.Context, data models.CheckoutInfo) (*models.SuccessResponse, error)
+}
+type OrderResolver interface {
+	Customer(ctx context.Context, obj *models.Order) (*models.User, error)
+	Products(ctx context.Context, obj *models.Order) ([]models.OrderProduct, error)
+}
+type OrderProductResolver interface {
+	Product(ctx context.Context, obj *models.OrderProduct) (*models.Product, error)
 }
 type QueryResolver interface {
 	Users(ctx context.Context) ([]models.User, error)
@@ -1061,13 +1070,13 @@ func (ec *executionContext) _Order_customer(ctx context.Context, field graphql.C
 		Object:   "Order",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Customer, nil
+		return ec.resolvers.Order().Customer(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1079,9 +1088,9 @@ func (ec *executionContext) _Order_customer(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.User)
+	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNUser2githubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Order_products(ctx context.Context, field graphql.CollectedField, obj *models.Order) (ret graphql.Marshaler) {
@@ -1095,13 +1104,13 @@ func (ec *executionContext) _Order_products(ctx context.Context, field graphql.C
 		Object:   "Order",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Products, nil
+		return ec.resolvers.Order().Products(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1163,13 +1172,13 @@ func (ec *executionContext) _OrderProduct_product(ctx context.Context, field gra
 		Object:   "OrderProduct",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Product, nil
+		return ec.resolvers.OrderProduct().Product(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1181,9 +1190,9 @@ func (ec *executionContext) _OrderProduct_product(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Product)
+	res := resTmp.(*models.Product)
 	fc.Result = res
-	return ec.marshalNProduct2githubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐProduct(ctx, field.Selections, res)
+	return ec.marshalNProduct2ᚖgithubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐProduct(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrderProduct_quantity(ctx context.Context, field graphql.CollectedField, obj *models.OrderProduct) (ret graphql.Marshaler) {
@@ -3065,28 +3074,46 @@ func (ec *executionContext) _Order(ctx context.Context, sel ast.SelectionSet, ob
 		case "id":
 			out.Values[i] = ec._Order_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "address":
 			out.Values[i] = ec._Order_address(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "date_added":
 			out.Values[i] = ec._Order_date_added(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "customer":
-			out.Values[i] = ec._Order_customer(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Order_customer(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "products":
-			out.Values[i] = ec._Order_products(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Order_products(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3112,17 +3139,26 @@ func (ec *executionContext) _OrderProduct(ctx context.Context, sel ast.Selection
 		case "id":
 			out.Values[i] = ec._OrderProduct_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "product":
-			out.Values[i] = ec._OrderProduct_product(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OrderProduct_product(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "quantity":
 			out.Values[i] = ec._OrderProduct_quantity(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -3828,6 +3864,16 @@ func (ec *executionContext) marshalNProduct2ᚕgithubᚗcomᚋAnondoᚋgraphql�
 	return ret
 }
 
+func (ec *executionContext) marshalNProduct2ᚖgithubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐProduct(ctx context.Context, sel ast.SelectionSet, v *models.Product) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Product(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
@@ -3896,6 +3942,16 @@ func (ec *executionContext) marshalNUser2ᚕgithubᚗcomᚋAnondoᚋgraphqlᚑan
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋAnondoᚋgraphqlᚑandᚑgoᚋgraphᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
