@@ -6,6 +6,7 @@ import (
 	"github.com/Anondo/graphql-and-go/conn"
 	"github.com/Anondo/graphql-and-go/database/repos"
 	"github.com/Anondo/graphql-and-go/graph/models"
+	"github.com/Anondo/graphql-and-go/graph/transformers"
 )
 
 func (r *queryResolver) Users(ctx context.Context) ([]models.User, error) {
@@ -17,16 +18,7 @@ func (r *queryResolver) Users(ctx context.Context) ([]models.User, error) {
 		return umm, err
 	}
 
-	for _, user := range users {
-		umm = append(umm, models.User{
-			ID:        user.ID,
-			FirstName: user.FirstName,
-			LastName:  user.LastName,
-			PhoneNo:   user.PhoneNo,
-		})
-	}
-
-	return umm, nil
+	return transformers.TransformUsersToGraph(users), nil
 }
 
 func (r *queryResolver) User(ctx context.Context, id int) (*models.User, error) {
@@ -41,12 +33,5 @@ func (r *queryResolver) User(ctx context.Context, id int) (*models.User, error) 
 		return nil, nil
 	}
 
-	u := &models.User{
-		ID:        id,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		PhoneNo:   user.PhoneNo,
-	}
-
-	return u, nil
+	return transformers.TransformUserToGraph(user), nil
 }

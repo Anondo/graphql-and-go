@@ -6,6 +6,7 @@ import (
 	"github.com/Anondo/graphql-and-go/conn"
 	"github.com/Anondo/graphql-and-go/database/repos"
 	"github.com/Anondo/graphql-and-go/graph/models"
+	"github.com/Anondo/graphql-and-go/graph/transformers"
 )
 
 func (r *queryResolver) Orders(ctx context.Context, userID int) ([]models.Order, error) {
@@ -18,16 +19,7 @@ func (r *queryResolver) Orders(ctx context.Context, userID int) ([]models.Order,
 		return oo, err
 	}
 
-	for _, order := range orders {
-		oo = append(oo, models.Order{
-			ID:         order.ID,
-			CustomerID: userID,
-			Address:    order.Address,
-			DateAdded:  order.DateAdded.String(),
-		})
-	}
-
-	return oo, nil
+	return transformers.TransformOrdersToGraph(orders), nil
 
 }
 
@@ -44,14 +36,7 @@ func (r *queryResolver) Order(ctx context.Context, id int) (*models.Order, error
 		return nil, nil
 	}
 
-	o := &models.Order{
-		ID:         order.ID,
-		CustomerID: order.CustomerID,
-		Address:    order.Address,
-		DateAdded:  order.DateAdded.String(),
-	}
-
-	return o, nil
+	return transformers.TransformOrderToGraph(order), nil
 }
 
 func (r *orderResolver) Products(ctx context.Context, o *models.Order) ([]models.OrderProduct, error) {
@@ -63,15 +48,7 @@ func (r *orderResolver) Products(ctx context.Context, o *models.Order) ([]models
 		return ops, err
 	}
 
-	for _, op := range orderProducts {
-		ops = append(ops, models.OrderProduct{
-			ID:        op.ID,
-			ProductID: op.ProductID,
-			Quantity:  op.Quantity,
-		})
-	}
-
-	return ops, nil
+	return transformers.TransformOrderProductsToGraph(orderProducts), nil
 }
 
 func (r *orderResolver) Customer(ctx context.Context, o *models.Order) (*models.User, error) {
@@ -86,14 +63,7 @@ func (r *orderResolver) Customer(ctx context.Context, o *models.Order) (*models.
 		return nil, nil
 	}
 
-	customer := &models.User{
-		ID:        user.ID,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		PhoneNo:   user.PhoneNo,
-	}
-
-	return customer, nil
+	return transformers.TransformUserToGraph(user), nil
 }
 
 func (r *orderProductResolver) Product(ctx context.Context, op *models.OrderProduct) (*models.Product, error) {
@@ -107,11 +77,5 @@ func (r *orderProductResolver) Product(ctx context.Context, op *models.OrderProd
 		return nil, nil
 	}
 
-	p := &models.Product{
-		ID:   product.ID,
-		Name: product.Name,
-		Type: product.Type,
-	}
-
-	return p, nil
+	return transformers.TransformProductToGraph(product), nil
 }

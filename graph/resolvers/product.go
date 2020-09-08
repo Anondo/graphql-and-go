@@ -6,6 +6,7 @@ import (
 	"github.com/Anondo/graphql-and-go/conn"
 	"github.com/Anondo/graphql-and-go/database/repos"
 	"github.com/Anondo/graphql-and-go/graph/models"
+	"github.com/Anondo/graphql-and-go/graph/transformers"
 )
 
 func (r *queryResolver) Products(ctx context.Context) ([]models.Product, error) {
@@ -17,15 +18,7 @@ func (r *queryResolver) Products(ctx context.Context) ([]models.Product, error) 
 		return pmm, err
 	}
 
-	for _, product := range products {
-		pmm = append(pmm, models.Product{
-			ID:   product.ID,
-			Name: product.Name,
-			Type: product.Type,
-		})
-	}
-
-	return pmm, nil
+	return transformers.TransformProductsToGraph(products), nil
 }
 
 func (r *queryResolver) Product(ctx context.Context, id int) (*models.Product, error) {
@@ -40,11 +33,5 @@ func (r *queryResolver) Product(ctx context.Context, id int) (*models.Product, e
 		return nil, nil
 	}
 
-	p := &models.Product{
-		ID:   id,
-		Name: product.Name,
-		Type: product.Type,
-	}
-
-	return p, nil
+	return transformers.TransformProductToGraph(product), nil
 }
