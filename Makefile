@@ -10,11 +10,6 @@ destroy_containers:
 	docker-compose down
 	@echo "containers destroyed..."
 
-build_app:
-	@echo "building the app..."
-	go build .
-	@echo "App build..."
-
 migration_up:
 	@echo "running migrations..."
 	./graphql-and-go migration up
@@ -30,11 +25,12 @@ gen:
 	go generate ./...
 	@echo "gqlgen codes generated..."
 
-init: boot_containers gen build_app migration_up 
-	@echo "App initialized"
+init: boot_containers gen
+	@echo "Dependencies initialized"
 
 run:
-	./graphql-and-go serve
+	chmod a+x ./run.sh
+	./run.sh
 
 
 down: migration_down destroy_containers

@@ -19,4 +19,4 @@ services:
       - '3306'
       # Where our data will be persisted
     volumes:
-      - ./storage/mysql
+      - './storage/mysql:/var/lib/mysql'

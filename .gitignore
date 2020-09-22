@@ -20,7 +20,8 @@ go.sum
 vendor
 storage
 
-# the binary
+# the binaries
+gng
 graphql-and-go
 
 # Misc
