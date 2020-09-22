@@ -1,4 +1,3 @@
-//go:generate go run github.com/99designs/gqlgen --verbose
 package resolvers
 
 import "github.com/Anondo/graphql-and-go/graph/generated"

@@ -7,6 +7,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/Anondo/graphql-and-go/graph/generated"
 	"github.com/Anondo/graphql-and-go/graph/resolvers"
+	"github.com/Anondo/graphql-and-go/middlewares"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -37,7 +38,7 @@ func Router() *echo.Echo {
 
 	graphHandler := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{}}))
 
-	v1.POST("/query", echo.WrapHandler(graphHandler))
+	v1.POST("/query", echo.WrapHandler(graphHandler), middlewares.AuthMiddleware)
 
 	return e
 }
